@@ -1,0 +1,32 @@
+{
+  "_help": "ClickUp user id -> [short code, display name, team]. team is \"ksa\" or \"eg\". Anyone not listed is added automatically to the Egypt team. To hide someone from the dashboard, add their code to \"removed\".",
+  "removed": ["TA"],
+  "members": {
+    "107434167": ["L", "Lama Almuayli", "ksa"],
+    "107434141": ["N", "Nahas", "ksa"],
+    "107434142": ["W", "Waleed Almaslokhi", "ksa"],
+    "107434127": ["NO", "Norah alomair", "ksa"],
+    "107434156": ["R", "Randa", "ksa"],
+    "107434311": ["AH", "Ahmad Hasan", "ksa"],
+    "107409668": ["MM", "Mohamed Mustafa", "eg"],
+    "107409672": ["OA", "Osama AlaaEldin", "eg"],
+    "107409666": ["RF", "Mohamed Abdelazim", "eg"],
+    "308512719": ["MA", "Mohammed Abdlnasser", "eg"],
+    "113562145": ["GO", "Gouda", "eg"],
+    "107409665": ["AK", "Mohamed Adel Khalil", "eg"],
+    "254539719": ["MY", "Mahmoud Youssef", "eg"],
+    "101693437": ["ME", "Muhammad Elsayed", "eg"],
+    "113619081": ["LI", "Lina Mahmoud Thabit", "eg"],
+    "113639201": ["NM", "Nourhan Mamdouh", "eg"],
+    "107409671": ["AS", "Ahmed Sharaby", "eg"],
+    "107409661": ["HO", "Hoda Ammar", "eg"],
+    "107409662": ["FM", "Fatma Madih", "eg"],
+    "107409664": ["BA", "Basset", "eg"],
+    "107694993": ["GA", "Galal Alaa", "eg"],
+    "296685515": ["TA", "Tala Alhazmi", "eg"],
+    "107434133": ["AB", "Amin Basalama", "eg"],
+    "113680398": ["OY", "Omar Younis", "eg"],
+    "113689783": ["NMO", "nmohamed", "eg"],
+    "107409663": ["EM", "Ahmed Elminshawy", "eg"]
+  }
+}

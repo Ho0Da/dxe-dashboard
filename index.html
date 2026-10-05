@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>DXE Team Workload</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: header band (title, update stamp, team switch) → four KPI cards with EG/KSA split bars → weekly heat table; data from data.json */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --sunk:#eef1f4; --line:#e1e6eb; --line-strong:#cfd6dd;
+  --fg:#152230; --muted:#5b6876; --faint:#8b97a3;
+  --ink:#1f4b7a; --ink-tint:#e6eef7;
+  --eg:#b4691b; --eg-soft:#f8ead8; --ksa:#0f7b5c; --ksa-soft:#d9f0e6;
+  --ok:#2c8a52; --warn:#a8770e; --crit:#c23b2c; --crit-soft:#fbe7e3;
+  --lv-light:#eef2f5; --lv-ok:#dcefe2; --lv-heavy:#f8e7c2; --lv-over:#f6d2ca;
+  --lv-light-fg:#6a7784; --lv-ok-fg:#1d6a3c; --lv-heavy-fg:#7c5408; --lv-over-fg:#9b2b1c;
+  --shadow:0 1px 2px rgba(21,34,48,.05),0 4px 14px rgba(21,34,48,.04);
+  --f-display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1419; --surface:#151d24; --sunk:#1b252e; --line:#25313b; --line-strong:#33414d;
+  --fg:#e5ebf0; --muted:#9aa7b3; --faint:#6c7a86;
+  --ink:#8db8e6; --ink-tint:#1c2f44;
+  --eg:#e3a457; --eg-soft:#3a2b18; --ksa:#45c39a; --ksa-soft:#153a2e;
+  --ok:#5bbd7f; --warn:#dcae45; --crit:#ef7562; --crit-soft:#3d1f1a;
+  --lv-light:#1d2730; --lv-ok:#173a27; --lv-heavy:#3d3014; --lv-over:#47221c;
+  --lv-light-fg:#8b98a4; --lv-ok-fg:#86d6a3; --lv-heavy-fg:#e8c26a; --lv-over-fg:#f59b8b;
+  --shadow:none; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1419; --surface:#151d24; --sunk:#1b252e; --line:#25313b; --line-strong:#33414d;
+  --fg:#e5ebf0; --muted:#9aa7b3; --faint:#6c7a86;
+  --ink:#8db8e6; --ink-tint:#1c2f44;
+  --eg:#e3a457; --eg-soft:#3a2b18; --ksa:#45c39a; --ksa-soft:#153a2e;
+  --ok:#5bbd7f; --warn:#dcae45; --crit:#ef7562; --crit-soft:#3d1f1a;
+  --lv-light:#1d2730; --lv-ok:#173a27; --lv-heavy:#3d3014; --lv-over:#47221c;
+  --lv-light-fg:#8b98a4; --lv-ok-fg:#86d6a3; --lv-heavy-fg:#e8c26a; --lv-over-fg:#f59b8b;
+  --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:0 56px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.015em}
+h1{font-size:1.65rem;line-height:1.1} h2{font-size:1.15rem}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* header band */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:20px 14px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between}
+.brand{display:flex;flex-direction:column;gap:6px;min-width:0}
+.brand .eyebrow{color:var(--ink)}
+.sync{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 10px 3px 8px;width:max-content;max-width:100%}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+.dot.live{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 22%,transparent)}
+.dot.err{background:var(--crit)}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:7px 14px;border-radius:7px;font-size:.84rem;color:var(--muted);font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);font-weight:600}
+.seg i{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;margin-bottom:14px}
+.sec-head > div:first-child{display:flex;flex-direction:column;gap:4px;min-width:0}
+
+/* KPI cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px;min-width:0;box-shadow:var(--shadow)}
+.card .lbl{font-size:.8rem;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.card .val{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big{font-family:var(--f-display);font-size:2.4rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.02em}
+.tag{font-size:.72rem;font-family:var(--f-mono);font-weight:600;padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.tag.good{background:var(--lv-ok);color:var(--lv-ok-fg)}
+.sub{font-size:.76rem;color:var(--faint);margin:0}
+.card.alert{border-color:color-mix(in srgb,var(--crit) 45%,var(--line));background:linear-gradient(var(--crit-soft),var(--surface) 70%)}
+.card.alert .big{color:var(--crit)}
+.sbar{display:flex;height:6px;border-radius:999px;overflow:hidden;background:var(--sunk);gap:2px}
+.sbar i{display:block;height:100%}
+.sbar .e{background:var(--eg)} .sbar .k{background:var(--ksa)}
+.split{display:flex;justify-content:space-between;gap:10px;font-size:.78rem;color:var(--muted);flex-wrap:wrap}
+.split span{display:inline-flex;gap:6px;align-items:center}
+.split b{font-family:var(--f-mono);font-weight:600;color:var(--fg)}
+.chip{font-size:.62rem;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.05em;flex:none;line-height:1.4}
+.chip.eg{background:var(--eg-soft);color:var(--eg)} .chip.ksa{background:var(--ksa-soft);color:var(--ksa)}
+
+/* date range */
+.range{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.8rem;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px 4px 4px 10px}
+.range input{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:7px;padding:5px 8px;font-size:.82rem}
+.btn{border:1px solid var(--line);background:var(--surface);padding:6px 12px;border-radius:7px;font-size:.8rem;font-weight:600;color:var(--ink)}
+.btn:hover{background:var(--ink-tint)}
+
+/* workload table */
+.wl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto;box-shadow:var(--shadow)}
+table.wl{width:100%;border-collapse:separate;border-spacing:0;min-width:640px}
+.wl th,.wl td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+.wl thead th{font-size:.72rem;font-weight:600;color:var(--muted);background:var(--sunk);letter-spacing:.03em}
+.wl thead th small{display:block;font-weight:400;font-family:var(--f-mono);font-size:.68rem;color:var(--faint);margin-top:1px}
+.wl thead tr.grp th{background:var(--surface);color:var(--fg);font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;padding:12px 8px 10px}
+.wl thead tr.grp th.span{color:var(--ink)}
+.wl thead tr.grp th.now{border-left:1px solid var(--line)}
+.wl th.today{color:var(--ink);background:var(--ink-tint)}
+.wl td.today{background:color-mix(in srgb,var(--ink-tint) 55%,var(--surface))}
+.wl th:first-child,.wl td:first-child{text-align:left;padding-left:16px;position:sticky;left:0;background:var(--surface);z-index:1;border-right:1px solid var(--line)}
+.wl th:first-child{width:240px}
+.wl thead tr.grp th:first-child{vertical-align:bottom;color:var(--muted);text-transform:none;letter-spacing:.03em;font-size:.72rem;background:var(--sunk)}
+.wl tbody tr:last-child td{border-bottom:0}
+.wl tbody tr:hover td{background:var(--sunk)}
+.wl tbody tr:hover td.today{background:color-mix(in srgb,var(--ink-tint) 80%,var(--sunk))}
+.who{display:flex;gap:10px;align-items:center;min-width:0;white-space:nowrap}
+.av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:.66rem;font-weight:700;letter-spacing:.02em;flex:none}
+.av.eg{background:var(--eg-soft);color:var(--eg)} .av.ksa{background:var(--ksa-soft);color:var(--ksa)}
+.who .nm{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.who b{font-weight:600;font-size:.86rem}
+.who small{font-size:.66rem;font-weight:700;letter-spacing:.06em}
+.who small.eg{color:var(--eg)} .who small.ksa{color:var(--ksa)}
+.pill{display:inline-grid;place-items:center;min-width:34px;height:28px;padding:0 8px;border-radius:8px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:.88rem}
+.pill.none{color:var(--faint);font-weight:400}
+.lv-0{color:var(--faint)}
+.lv-light{background:var(--lv-light);color:var(--lv-light-fg)}
+.lv-ok{background:var(--lv-ok);color:var(--lv-ok-fg)}
+.lv-heavy{background:var(--lv-heavy);color:var(--lv-heavy-fg)}
+.lv-over{background:var(--lv-over);color:var(--lv-over-fg)}
+td.done{border-left:1px solid var(--line)}
+td.done span{font-family:var(--f-mono);font-weight:600;color:var(--ok)}
+td.done span.z{color:var(--faint);font-weight:400}
+.empty{padding:32px 8px;text-align:center;color:var(--muted)}
+.key{display:flex;gap:8px 16px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);margin-top:12px;align-items:center}
+.key span{display:inline-flex;gap:6px;align-items:center}
+.key i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.key .sep{flex:1 1 0;min-width:0}
+.range select{border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:7px;padding:5px 8px;font-size:.82rem}
+.mstats{margin-bottom:14px}
+.wl thead tr.days th:first-child{position:static;text-align:center;padding-left:6px;background:var(--sunk);border-right:0;width:auto}
+.mt td:not(:first-child){font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.cnt{display:inline-grid;place-items:center;min-width:34px;height:26px;padding:0 8px;border-radius:7px;font-weight:600;font-size:.88rem}
+.cnt.z{color:var(--faint);font-weight:400}
+.c-t{background:var(--sunk);color:var(--fg)}
+.c-p{background:var(--ink-tint);color:var(--ink)}
+.c-r{background:var(--lv-heavy);color:var(--lv-heavy-fg)}
+.c-d{background:var(--lv-ok);color:var(--lv-ok-fg)}
+.wl tr.tot td{background:var(--sunk);font-weight:700;border-top:2px solid var(--line-strong)}
+.wl tr.tot td:first-child{font-family:var(--f-body);display:table-cell}
+.wl tr.tot small.tn{display:block;font-weight:400;font-size:.68rem;color:var(--faint)}
+.note{font-size:.78rem;color:var(--faint);margin:0;max-width:70ch}
+@media (max-width:520px){ h1{font-size:1.4rem} .big{font-size:2rem} .seg button{padding:6px 10px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Digital Experience · Design team</span>
+      <h1>DXE Team Workload</h1>
+      <div class="sync"><span class="dot" id="syncDot"></span><span id="syncText">Loading…</span></div>
+    </div>
+    <div class="seg" role="group" aria-label="Team" id="teamSeg">
+      <button type="button" data-t="all" aria-pressed="true">Whole team</button>
+      <button type="button" data-t="eg" aria-pressed="false"><i style="background:var(--eg)"></i>Egypt</button>
+      <button type="button" data-t="ksa" aria-pressed="false"><i style="background:var(--ksa)"></i>KSA</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head"><div><span class="eyebrow" id="periodLabel">Year to date</span><h2>Summary</h2></div></div>
+    <div class="cards" id="cards">
+      <div class="card"><span class="lbl">Came in this year</span><span class="big">–</span></div>
+      <div class="card"><span class="lbl">Done this year</span><span class="big">–</span></div>
+      <div class="card"><span class="lbl">In progress now</span><span class="big">–</span></div>
+      <div class="card"><span class="lbl">Blocked now</span><span class="big">–</span></div>
+    </div>
+  </section>
+
+  <section id="weeklySec" hidden>
+    <div class="sec-head"><div><span class="eyebrow">Tasks in progress per designer, recorded each day</span><h2>Weekly workload</h2></div>
+      <div class="range" role="group" aria-label="Days shown">
+        <label for="dFrom">From</label><input type="date" id="dFrom">
+        <label for="dTo">To</label><input type="date" id="dTo">
+        <button class="btn" type="button" id="dReset">This week</button>
+      </div></div>
+    <div class="wl-wrap">
+      <table class="wl">
+        <thead id="wlHead"><tr><th>Designer</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Done</th></tr></thead>
+        <tbody id="wlBody"><tr><td colspan="7" class="empty" style="position:static">Each designer's daily load appears here once the first update is published.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="key" id="key"></div>
+  </section>
+  <section>
+    <div class="sec-head"><div><span class="eyebrow">Where each designer's tasks stand, and what they finished</span><h2>Monthly effort</h2></div>
+      <div class="range" role="group" aria-label="Month shown">
+        <label for="mSel">Month</label><select id="mSel"><option>Loading…</option></select>
+      </div></div>
+    <div class="cards mstats" id="mStats"></div>
+    <div class="wl-wrap">
+      <table class="wl mt">
+        <thead id="mHead"><tr><th>Designer</th><th>To do</th><th>In progress</th><th>In review</th><th>Done</th></tr></thead>
+        <tbody id="mBody"><tr><td colspan="5" class="empty" style="position:static">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="note" id="mNote" style="margin-top:10px"></p>
+  </section>
+  <p class="note">Updated from ClickUp twice a day, at 12:00 and 20:00. Counts include subtasks. The daily numbers count tasks in progress, hands on, team review or blocked. In the summary and weekly table, "Done" means stakeholders review, done or signed off. In Monthly effort, stakeholders review counts as In review, Done means done, signed off or complete in the chosen month, and blocked tasks are left out of the table.</p>
+</div>
+
+<script>
+(() => {
+"use strict";
+// data.json: {generatedAt, weekStart, capacity, people:{code:[name,team]}, open:[["a"|"b"|"t",[codes],overdue0|1]], blockedTracked, done:[[codes]] (this week), year:{label,in:{all,ksa},done:{all,ksa}}, history:{"YYYY-MM-DD":{code:count}}, historySince}
+const DAY=864e5, TZ=3*3600e3, DAYN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rd=ms=>new Date(ms+TZ);
+const fmtDay=ms=>rd(ms).toLocaleDateString("en-GB",{day:"numeric",month:"short",timeZone:"UTC"});
+const fmtStamp=ms=>rd(ms).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"UTC"});
+const chip=k=>`<span class="chip ${k}">${k==="eg"?"EG":"KSA"}</span>`;
+const initials=n=>String(n).trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase();
+const fmt=n=>Number(n||0).toLocaleString("en");
+let D=null, team="all";
+try{ const v=localStorage.getItem("dxe-cto-team"); if(v) team=v; }catch{}
+
+function render(){
+  const gen=D.generatedAt, ws=D.weekStart, cap=D.capacity||8, P=D.people||{}, H=D.history||{};
+  const teamOf=c=>(P[c]&&P[c][1])||"eg";
+  const dkey=ms=>rd(ms).toISOString().slice(0,10);
+  const Y=D.year||{in:{all:0,ksa:0},done:{all:0,ksa:0}};
+  $("periodLabel").textContent=`Year to date · ${Y.label||""}`;
+  $("syncDot").className="dot "+(Date.now()-gen<14*3600e3?"live":"err");
+  $("syncText").textContent=`Updated ${fmtStamp(gen)} · Riyadh time`;
+  const todayKey=dkey(gen);
+  const dayList=selectedDays(ws);
+  const days=dayList.map(a=>{ const k=dkey(a+1); return {a,key:k,dow:rd(a).getUTCDay(),isToday:k===todayKey,future:k>todayKey}; });
+  const isWeek=dayList.length===5 && dayList[0]===ws;
+  const T={eg:{p:0,q:0,d:0,o:0,b:0},ksa:{p:0,q:0,d:0,o:0,b:0},all:{p:0,q:0,d:0,o:0,b:0}};
+  const people={};
+  const person=c=>people[c] ||= {name:(P[c]&&P[c][0])||c,team:teamOf(c),active:0,todo:0,done:0,over:0};
+  const bump=(codes,f)=>{ const ts=new Set(codes.map(teamOf)); [...ts,"all"].forEach(f); };
+  const mine=c=>team==="all"||teamOf(c)===team;
+  for(const [stage,codes,od] of D.open||[]){
+    // "b" = blocked: shown in its own card, still part of each designer's daily load
+    const act=stage==="a"||stage==="p"||stage==="r";
+    bump(codes,k=>{ if(act) T[k].p++; else if(stage==="b") T[k].b++; else T[k].q++; if(od) T[k].o++; });
+    for(const c of codes){ if(!mine(c)) continue; const p=person(c); if(act||stage==="b") p.active++; else p.todo++; if(od) p.over++; }
+  }
+  for(const codes of D.done||[]){
+    bump(codes,k=>T[k].d++);
+    for(const c of codes){ if(mine(c)) person(c).done++; }
+  }
+  for(const day of Object.values(H)) for(const c of Object.keys(day)) if(mine(c)) person(c);
+  const yv=(m,k)=>k==="all"?m.all:k==="ksa"?m.ksa:m.all-m.ksa;
+  for(const k of ["eg","ksa","all"]){ T[k].yin=yv(Y.in,k); T[k].ydone=yv(Y.done,k); }
+  const X=T[team];
+
+  // card footer: EG/KSA split bar on the whole-team view, share of the whole team otherwise
+  const foot=key=>{
+    const e=T.eg[key], s=T.ksa[key], tot=e+s;
+    if(team==="all"){
+      const pe=tot?e/tot*100:50;
+      return `<div class="sbar" aria-hidden="true"><i class="e" style="width:${pe}%"></i><i class="k" style="width:${100-pe}%"></i></div><div class="split"><span>${chip("eg")} <b>${fmt(e)}</b></span><span><b>${fmt(s)}</b> ${chip("ksa")}</span></div>`;
+    }
+    const all=T.all[key], pct=all?Math.round(X[key]/all*100):0;
+    return `<div class="sbar" aria-hidden="true"><i class="${team==="eg"?"e":"k"}" style="width:${pct}%"></i></div><div class="split"><span>${pct}% of the whole team</span><span>of <b>${fmt(all)}</b></span></div>`;
+  };
+  const card=(l,sub,key,extra="",cls="")=>`<div class="card ${cls}"><span class="lbl">${l}</span><div class="val"><span class="big">${fmt(X[key])}</span>${extra}</div>${foot(key)}</div>`;
+  const rate=X.yin?Math.round(X.ydone/X.yin*100):0;
+  $("cards").innerHTML=
+    card(`Came in · ${Y.label||"this year"}`,"Tasks and subtasks created this year","yin")+
+    card(`Done · ${Y.label||"this year"}`,"Reached stakeholders review, done or signed off","ydone",X.yin?`<span class="tag good" title="Done as a share of tasks that came in">${rate}% of incoming</span>`:"")+
+    card("In progress now",D.blockedTracked?"In progress, hands on or team review":"In progress, hands on, team review or blocked","p")+
+    (D.blockedTracked?card("Blocked now","Tasks with status blocked","b",X.b?`<span class="tag" style="background:var(--crit-soft);color:var(--crit)">needs attention</span>`:"",X.b?"alert":""):"");
+
+  const cell=(p,d)=>{
+    if(d.future) return null;
+    if(d.isToday) return p.active;
+    const h=H[d.key]; return h ? (h[p.code]||0) : undefined;
+  };
+  Object.entries(people).forEach(([c,p])=>p.code=c);
+  const list=Object.values(people).filter(p=>p.active||p.todo||p.done).sort((a,b)=>b.active-a.active||b.todo-a.todo||a.name.localeCompare(b.name));
+  const lv=n=>!n?"lv-0":n>cap*1.25?"lv-over":n>cap*.75?"lv-heavy":n>=cap*.35?"lv-ok":"lv-light";
+  const rangeLbl=isWeek?`This week · ${fmtDay(days[0].a)} – ${fmtDay(days[days.length-1].a)}`:`Selected days · ${fmtDay(days[0].a)} – ${fmtDay(days[days.length-1].a)}`;
+  $("wlHead").innerHTML=`<tr class="grp"><th rowspan="2">Designer</th><th class="span" colspan="${days.length}">${rangeLbl}</th><th class="now">Right now</th></tr><tr class="days">${days.map(d=>`<th class="${d.isToday?"today":""}">${DAYN[d.dow]}${d.isToday?" · today":""}<small>${fmtDay(d.a)}</small></th>`).join("")}<th>Done<small>this week</small></th></tr>`;
+  $("wlBody").innerHTML=list.length?list.map(p=>`<tr><td><div class="who"><span class="av ${p.team}" aria-hidden="true">${esc(initials(p.name))}</span><span class="nm"><b>${esc(p.name)}</b><small class="${p.team}">${p.team==="eg"?"EG":"KSA"}</small></span></div></td>${days.map(d=>{
+      const n=cell(p,d), t=d.isToday?" today":"";
+      if(n===null) return `<td class="${t}"><span class="pill none">·</span></td>`;
+      if(n===undefined) return `<td class="${t}" title="No record for this day"><span class="pill none">–</span></td>`;
+      return `<td class="${t}" title="${n} task${n===1?"":"s"} in progress"><span class="pill ${lv(n)}">${n}</span></td>`;
+    }).join("")}<td class="done"><span class="${p.done?"":"z"}">${p.done}</span></td></tr>`).join(""):`<tr><td colspan="${days.length+2}" class="empty" style="position:static">No designer has tasks in these days.</td></tr>`;
+  const lo=Math.ceil(cap*.35), ok=Math.floor(cap*.75), hv=Math.floor(cap*1.25);
+  $("key").innerHTML=`<span><i class="lv-light"></i>Light (under ${lo})</span><span><i class="lv-ok"></i>Healthy (${lo}–${ok})</span><span><i class="lv-heavy"></i>Busy (${ok+1}–${hv})</span><span><i class="lv-over"></i>Overloaded (over ${hv})</span><span class="sep"></span><span>Capacity ${cap} tasks per designer</span>${D.historySince?`<span>· History from ${fmtDay(Date.parse(D.historySince+"T00:00:00Z")-TZ+1)}</span>`:""}`;
+  renderMonthly();
+}
+// ---- Monthly effort: To do / In progress / In review are the current state; Done is counted in the chosen month (or the whole year)
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+let monthSel=null;
+function monthOptions(){
+  const DM=D.doneM||{}, cur=rd(D.generatedAt).toISOString().slice(0,7), yr=cur.slice(0,4);
+  const keys=Object.keys(DM).filter(k=>k.startsWith(yr)&&k<=cur);
+  if(!keys.includes(cur)) keys.push(cur);
+  const first=keys.filter(k=>(DM[k]&&DM[k].n)||k===cur).sort()[0]||cur;
+  const list=keys.filter(k=>k>=first).sort().reverse();
+  if(monthSel==null) monthSel=cur;
+  $("mSel").innerHTML=list.map(k=>`<option value="${k}">${MON[+k.slice(5,7)-1]} ${k.slice(0,4)}${k===cur?" (this month)":""}</option>`).join("")+`<option value="year">All of ${yr}</option>`;
+  $("mSel").value=monthSel;
+}
+function renderMonthly(){
+  if(!D) return;
+  monthOptions();
+  const P=D.people||{}, DM=D.doneM||{}, yr=rd(D.generatedAt).toISOString().slice(0,4);
+  const teamOf=c=>(P[c]&&P[c][1])||"eg";
+  const mine=c=>team==="all"||teamOf(c)===team;
+  const rows={}, row=c=>rows[c] ||= {code:c,name:(P[c]&&P[c][0])||c,team:teamOf(c),t:0,p:0,r:0,d:0};
+  const tot={t:new Set(),p:new Set(),r:new Set()}; let i=0;
+  const add=(col,codes)=>{ const id=i++; if(codes.some(mine)) tot[col].add(id); for(const c of codes) if(mine(c)) row(c)[col]++; };
+  for(const [stage,codes] of D.open||[]){
+    if(stage==="t") add("t",codes);
+    else if(stage==="p"||stage==="a") add("p",codes);
+    else if(stage==="r") add("r",codes);
+  }
+  for(const codes of D.sr||[]) add("r",codes);
+  const months=monthSel==="year"?Object.keys(DM).filter(k=>k.startsWith(yr)):[monthSel];
+  let dTot=0;
+  for(const k of months){ const m=DM[k]; if(!m) continue;
+    dTot+= team==="all"?(m.n||0):(m[team]||0);
+    for(const [c,n] of Object.entries(m.by||{})) if(mine(c)) row(c).d+=n; }
+  const lbl=monthSel==="year"?`All of ${yr}`:`${MON[+monthSel.slice(5,7)-1]} ${monthSel.slice(0,4)}`;
+  // month statistics: came in (created), closed (finished), blocked now (by the month the task came in)
+  const IM=D.inM||{}, CMap=D.cm||{}, curM=rd(D.generatedAt).toISOString().slice(0,7);
+  const inMonth=k=>monthSel==="year"?k.startsWith(yr):k===monthSel;
+  const sp=()=>({all:0,eg:0,ksa:0});
+  const S={in:sp(),out:sp(),blk:sp()};
+  for(const [k,m] of Object.entries(IM)) if(inMonth(k)){ S.in.all+=m.n||0; S.in.ksa+=m.ksa||0; S.in.eg+=(m.n||0)-(m.ksa||0); }
+  for(const [k,m] of Object.entries(DM)) if(inMonth(k)){ S.out.all+=m.n||0; S.out.ksa+=m.ksa||0; S.out.eg+=m.eg||0; }
+  let blkTracked=false;
+  for(const [stage,codes,,id] of D.open||[]){ if(stage!=="b") continue; if(id) blkTracked=true;
+    const k=(id&&CMap[id])||curM; if(!inMonth(k)) continue;
+    const ts=new Set(codes.map(teamOf)); S.blk.all++; ts.forEach(t=>S.blk[t]++); }
+  const sv=o=>team==="all"?o.all:o[team];
+  const stat=(l,sub,o,cls="")=>`<div class="card ${cls}"><span class="lbl">${l}</span><div class="val"><span class="big">${fmt(sv(o))}</span></div>${team==="all"?`<div class="split"><span>${chip("eg")} <b>${fmt(o.eg)}</b></span><span><b>${fmt(o.ksa)}</b> ${chip("ksa")}</span></div>`:""}</div>`;
+  const pastEst=!D.inExact&&(monthSel==="year"||monthSel<curM);
+  $("mStats").innerHTML=(D.inM?stat("Came in",`Tasks and subtasks created · ${esc(lbl)}${pastEst?" (estimated)":""}`,S.in):"")
+    +stat("Closed",`Finished (done, signed off or complete) · ${esc(lbl)}`,S.out)
+    +(blkTracked?stat("Blocked now",`Blocked tasks that came in · ${esc(lbl)}`,S.blk,sv(S.blk)?"alert":""):"");
+  $("mHead").innerHTML=`<tr class="grp"><th rowspan="2">Designer</th><th class="span" colspan="3">Right now</th><th class="now">Completed · ${esc(lbl)}</th></tr><tr class="days"><th>To do</th><th>In progress</th><th>In review</th><th>Done</th></tr>`;
+  const list=Object.values(rows).filter(r=>r.t||r.p||r.r||r.d).sort((a,b)=>(b.p+b.r+b.t)-(a.p+a.r+a.t)||b.d-a.d||a.name.localeCompare(b.name));
+  const num=(n,cls)=>`<span class="cnt ${n?cls:"z"}">${n}</span>`;
+  $("mBody").innerHTML=list.length?list.map(r=>`<tr><td><div class="who"><span class="av ${r.team}" aria-hidden="true">${esc(initials(r.name))}</span><span class="nm"><b>${esc(r.name)}</b><small class="${r.team}">${r.team==="eg"?"EG":"KSA"}</small></span></div></td><td>${num(r.t,"c-t")}</td><td>${num(r.p,"c-p")}</td><td>${num(r.r,"c-r")}</td><td class="done">${num(r.d,"c-d")}</td></tr>`).join("")
+    +`<tr class="tot"><td><b>Total tasks</b><small class="tn">each task counted once</small></td><td>${tot.t.size}</td><td>${tot.p.size}</td><td>${tot.r.size}</td><td class="done">${dTot}</td></tr>`
+    :`<tr><td colspan="5" class="empty" style="position:static">No tasks for this selection.</td></tr>`;
+  $("mNote").textContent=D.sr?"":"The In progress / In review split appears after the next update from ClickUp.";
+}
+$("mSel").addEventListener("change",e=>{ monthSel=e.target.value; renderMonthly(); });
+// people removed from the dashboard: dropped from every list before rendering
+function prune(j){
+  const REMOVED=new Set(j.removed||[]);
+  const keep=codes=>(codes||[]).filter(c=>!REMOVED.has(c));
+  j.open=(j.open||[]).map(e=>{ const x=e.slice(); x[1]=keep(e[1]); return x; }).filter(e=>e[1].length);
+  if(j.sr) j.sr=j.sr.map(keep).filter(c=>c.length);
+  j.done=(j.done||[]).map(keep).filter(c=>c.length);
+  for(const m of Object.values(j.doneM||{})) for(const c of REMOVED) if(m.by) delete m.by[c];
+  for(const d of Object.values(j.history||{})) for(const c of REMOVED) delete d[c];
+  for(const c of REMOVED) if(j.people) delete j.people[c];
+  return j;
+}
+let rangeFrom=null, rangeTo=null;
+const isoToMs=v=>{ const [y,m,d]=v.split("-").map(Number); return Date.UTC(y,m-1,d)-TZ; };
+const msToIso=ms=>rd(ms).toISOString().slice(0,10);
+function selectedDays(ws){
+  let a=rangeFrom!=null?rangeFrom:ws, b=rangeTo!=null?rangeTo:ws+4*DAY;
+  if(b<a) [a,b]=[b,a];
+  if(b-a>45*DAY) b=a+45*DAY;
+  const out=[]; for(let t=a;t<=b;t+=DAY){ const dow=rd(t).getUTCDay(); if(dow<=4) out.push(t); }
+  return out.length?out:[a];
+}
+function syncInputs(){ if(!D) return; const ws=D.weekStart; $("dFrom").value=msToIso(rangeFrom??ws); $("dTo").value=msToIso(rangeTo??ws+4*DAY);
+  const min=D.historySince||msToIso(ws); $("dFrom").min=min; $("dTo").min=min; }
+$("dFrom").addEventListener("change",e=>{ if(e.target.value){ rangeFrom=isoToMs(e.target.value); if(D) render(); } });
+$("dTo").addEventListener("change",e=>{ if(e.target.value){ rangeTo=isoToMs(e.target.value); if(D) render(); } });
+$("dReset").addEventListener("click",()=>{ rangeFrom=rangeTo=null; syncInputs(); if(D) render(); });
+const seg=$("teamSeg");
+seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.t===team)));
+seg.addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; team=b.dataset.t; seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); try{localStorage.setItem("dxe-cto-team",team);}catch{} if(D) render(); });
+fetch("data.json",{cache:"no-store"}).then(r=>{ if(!r.ok) throw 0; return r.json(); }).then(j=>{ D=prune(j); syncInputs(); render(); })
+  .catch(()=>{ $("syncDot").className="dot err"; $("syncText").textContent="No update published yet"; });
+})();
+</script>
+
+</body>
+</html>
