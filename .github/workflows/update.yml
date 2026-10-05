@@ -1,0 +1,60 @@
+name: Update dashboard
+
+on:
+  schedule:
+    # 11:53 and 19:53 Riyadh time, Sunday to Thursday (cron is in UTC)
+    - cron: "53 8,16 * * 0-4"
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["index.html", "people.json"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: dashboard
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Arrange files
+        run: |
+          mkdir -p scripts site
+          cp update.py scripts/update.py
+          cp index.html data.json site/
+
+      - name: Pull tasks from ClickUp
+        env:
+          CLICKUP_TOKEN: ${{ secrets.CLICKUP_TOKEN }}
+          CLICKUP_TEAM_ID: ${{ secrets.CLICKUP_TEAM_ID }}
+        run: python scripts/update.py
+
+      - name: Save the new data (keeps the daily history)
+        run: |
+          cp site/data.json data.json
+          git config user.name "dashboard-bot"
+          git config user.email "dashboard-bot@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet || git commit -m "Update dashboard data"
+          git push
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
