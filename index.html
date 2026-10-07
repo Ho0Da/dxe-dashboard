@@ -260,7 +260,7 @@ function render(){
   const P=D.people||{}, gen=D.generatedAt, yr=String(D.year);
   const teamOf=c=>(P[c]&&P[c][1])||"eg";
   const mine=c=>team==="all"||teamOf(c)===team;
-  const isNew=c=>{ const j=P[c]&&P[c][2]; if(!j) return false; if(j==="new") return true; const t=Date.parse(j+"T00:00:00Z"); return !isNaN(t) && gen-t <= (D.newJoinerDays||90)*DAY && gen>=t; };
+  const isNew=c=>{ const j=P[c]&&P[c][2]; if(!j) return false; const t=Date.parse(j+"T00:00:00Z"); return !isNaN(t) && gen-t <= (D.newJoinerDays||90)*DAY && gen>=t; };
   $("syncDot").className="dot "+(Date.now()-gen<14*3600e3?"live":"err");
   $("syncText").textContent=`Updated ${fmtStamp(gen)} · Riyadh time`;
   monthOptions();
@@ -299,7 +299,7 @@ function render(){
     return parts.length?`<span class="szs">${parts.join("")}</span>`:`<span class="sz-none">–</span>`; };
   const list=Object.values(rows).filter(x=>x.t||x.p||x.b||x.c||x.d).sort((a,b)=>(b.p+b.b+b.t)-(a.p+a.b+a.t)||b.d-a.d||a.name.localeCompare(b.name));
   const num=(n,cls)=>`<span class="cnt ${n?cls:"z"}">${n}</span>`;
-  $("mBody").innerHTML=list.length?list.map(x=>`<tr><td><div class="who"><span class="av ${x.team}" aria-hidden="true">${esc(initials(x.name))}</span><span class="nm"><b>${esc(x.name)}${isNew(x.code)?`<span class="newtag" title="New joiner">NEW</span>`:""}</b><small class="${x.team}">${x.team==="eg"?"EG":"KSA"}</small></span></div></td>${ST.map(([k])=>`<td>${num(x[k],"c-"+k)}</td>`).join("")}<td class="sz">${szCell(x.sz)}</td></tr>`).join("")
+  $("mBody").innerHTML=list.length?list.map(x=>`<tr><td><div class="who"><span class="av ${x.team}" aria-hidden="true">${esc(initials(x.name))}</span><span class="nm"><b>${esc(x.name)}${isNew(x.code)?`<span class="newtag" title="Joined in the last ${D.newJoinerDays||90} days">NEW</span>`:""}</b><small class="${x.team}">${x.team==="eg"?"EG":"KSA"}</small></span></div></td>${ST.map(([k])=>`<td>${num(x[k],"c-"+k)}</td>`).join("")}<td class="sz">${szCell(x.sz)}</td></tr>`).join("")
     +`<tr class="tot"><td><b>Total tasks</b><small class="tn">each task counted once</small></td>${ST.map(([k])=>`<td>${fmt(sv(S[k]))}</td>`).join("")}<td class="sz">${szCell(totSz)}</td></tr>`
     :`<tr><td colspan="7" class="empty" style="position:static">No tasks for this selection.</td></tr>`;
 }
