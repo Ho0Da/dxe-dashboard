@@ -5,7 +5,7 @@ Runs in GitHub Actions. Needs the CLICKUP_TOKEN secret (a personal API token,
 starts with "pk_"). CLICKUP_TEAM_ID is optional: when it is empty the script
 uses the first workspace the token can see.
 
-data.json "tasks" rows: [status, [person codes], created "YYYY-MM", closed "YYYY-MM" or "", size]
+data.json "tasks" rows: [status, [person codes], created "YYYY-MM", closed "YYYY-MM" or "", size, subtask 0|1]
   status: t = To Do, p = In Progress, b = Blocked, c = Cancelled, d = Done
   size:   "major" | "medium" | "minor" | "" (from the task's tags)
 """
@@ -139,13 +139,8 @@ def main():
         people[code] = [name, "eg", ""]
         return code
 
-    # Every task touched this year (covers created / finished / cancelled this year),
-    # plus every task that is still open whatever its age.
-    touched = team_tasks(team_id, token, include_closed="true", date_updated_gt=year_start_ms - 1)
-    open_now = team_tasks(team_id, token)  # open tasks only (closed excluded by default)
-    by_id = {t["id"]: t for t in touched}
-    for t in open_now:
-        by_id.setdefault(t["id"], t)
+    # Every task in the workspace, open and closed, any age (subtasks included)
+    by_id = {t["id"]: t for t in team_tasks(team_id, token, include_closed="true")}
 
     rows = []
     for t in by_id.values():
@@ -156,13 +151,10 @@ def main():
         created = month_key(t["date_created"]) if t.get("date_created") else ""
         closed = ""
         if st in ("d", "c"):
-            when = t.get("date_done") or t.get("date_closed")
-            if not when:
-                continue
-            closed = month_key(when)
-            if int(when) < year_start_ms:
-                continue  # finished before this year
-        rows.append([st, [code_of(a) for a in assignees], created, closed, size_of(t)])
+            when = t.get("date_done") or t.get("date_closed") or t.get("date_updated")
+            closed = month_key(when) if when else created
+        sub = 1 if t.get("parent") else 0
+        rows.append([st, [code_of(a) for a in assignees], created, closed, size_of(t), sub])
 
     data = {
         "generatedAt": int(now.timestamp() * 1000),
