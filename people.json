@@ -1,7 +1,9 @@
 {
   "_help": "ClickUp user id -> [short code, display name, team, joined date (optional): \"YYYY-MM-DD\" shows NEW for newJoinerDays days, \"new\" shows NEW until you remove it]. team is \"ksa\" or \"eg\". Anyone not listed is added to the Egypt team. People who joined in the last newJoinerDays days get a NEW tag. To hide someone, add their code to \"removed\".",
   "removed": [
-    "TA"
+    "TA",
+    "AH",
+    "EM"
   ],
   "members": {
     "107434167": [

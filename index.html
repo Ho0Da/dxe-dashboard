@@ -198,7 +198,6 @@ td.sz{border-left:1px solid var(--line);white-space:nowrap}
       <div class="range" role="group" aria-label="Month shown">
         <label for="mSel">Month</label><select id="mSel"><option>Loading…</option></select>
       </div>
-      <label class="range" for="subChk" style="cursor:pointer"><input type="checkbox" id="subChk" checked style="accent-color:var(--ink)"> Include subtasks</label>
       <div class="seg" role="group" aria-label="Team" id="teamSeg">
         <button type="button" data-t="all" aria-pressed="true">Whole team</button>
         <button type="button" data-t="eg" aria-pressed="false"><i style="background:var(--eg)"></i>Egypt</button>
@@ -221,7 +220,7 @@ td.sz{border-left:1px solid var(--line);white-space:nowrap}
       </table>
     </div>
   </section>
-  <p class="note" id="foot">Updated from ClickUp three times a day (about 12:00, 16:00 and 20:00 Riyadh time, Sunday to Thursday). Counts include subtasks. To Do, In Progress and Blocked count tasks that came in during the chosen month and are in that state now. Done and Cancelled count tasks closed in the chosen month. "All time" counts every task assigned to the person, like ClickUp's own task count. Untick "Include subtasks" to count main tasks only. Task size comes from the major, medium and minor tags in ClickUp and covers every task in the chosen period.</p>
+  <p class="note" id="foot">Updated from ClickUp three times a day (about 12:00, 16:00 and 20:00 Riyadh time, Sunday to Thursday). Counts main tasks only (subtasks are not counted). To Do, In Progress and Blocked count tasks that came in during the chosen month and are in that state now. Done and Cancelled count tasks closed in the chosen month. "All time" counts every task assigned to the person, like ClickUp's own task count. Task size comes from the major, medium and minor tags in ClickUp and covers every task in the chosen period.</p>
 </div>
 
 <script>
@@ -239,7 +238,8 @@ const fmtStamp=ms=>rd(ms).toLocaleString("en-GB",{weekday:"short",day:"numeric",
 const chip=k=>`<span class="chip ${k}">${k==="eg"?"EG":"KSA"}</span>`;
 const initials=n=>String(n).trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase();
 const fmt=n=>Number(n||0).toLocaleString("en");
-let D=null, team="all", monthSel=null, withSubs=true;
+let D=null, team="all", monthSel=null;
+const withSubs=false; // main tasks only, same as ClickUp's task count
 try{ const v=localStorage.getItem("dxe-cto-team"); if(v) team=v; }catch{}
 
 function prune(j){
@@ -306,7 +306,6 @@ function render(){
     :`<tr><td colspan="8" class="empty" style="position:static">No tasks for this selection.</td></tr>`;
 }
 $("mSel").addEventListener("change",e=>{ monthSel=e.target.value; render(); });
-$("subChk").addEventListener("change",e=>{ withSubs=e.target.checked; if(D) render(); });
 const seg=$("teamSeg");
 seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.t===team)));
 seg.addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; team=b.dataset.t; seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); try{localStorage.setItem("dxe-cto-team",team);}catch{} if(D) render(); });
