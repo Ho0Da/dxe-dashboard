@@ -26,11 +26,12 @@ PEOPLE_PATH = os.path.join(ROOT, "people.json")
 
 # ClickUp status name -> dashboard status
 STATUS_MAP = {
-    "to do": "t",
+    "to do": "t", "motion brief": "t", "storyboarding": "t",
     "in progress": "p", "hands on": "p", "team review": "p", "stakeholders review": "p", "amends": "p",
+    "animating": "p", "motion review": "p",
     "blocked": "b",
     "cancelled": "c", "canceled": "c",
-    "done": "d", "signed off": "d", "complete": "d", "completed": "d",
+    "done": "d", "signed off": "d", "complete": "d", "completed": "d", "approved": "d",
 }
 SIZES = ("major", "medium", "minor")
 
