@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>DXE Team Workload</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: dark-purple header panel (title, update time, refresh, export) → sticky filter bar → six status cards + status mix bar → designer table. Data from data.json. */
+:root{
+  /* brand palette */
+  --dark-purple:#34295E; --main-purple:#6B47F5; --light-purple:#D6D1ED; --light-gray:#D8D8D8;
+  --warm-white:#F7F6F2; --deep-black:#000000;
+  --vivid-green:#80EBBA; --light-green:#D5FCE8; --vibrant-pink:#FF6365; --light-pink:#FFA9A2;
+  /* roles */
+  --bg:var(--warm-white); --surface:#FFFFFF; --sunk:#F1EFF8; --line:#E5E2EF; --line-strong:#CFCAE3;
+  --fg:#1E1838; --muted:#5E5878; --faint:#9690AE;
+  --brand:var(--main-purple); --brand-ink:#5233E0; --brand-tint:#ECE8FB;
+  --hero:var(--dark-purple); --hero-fg:#FFFFFF; --hero-muted:#C9C2EA;
+  --green-ink:#17734B; --green-tint:#E3FBEF;
+  --pink-ink:#C2272B; --pink-tint:#FFE9E8;
+  --cancel-ink:#9A3F37; --cancel-tint:#FFF0EE;
+  --eg:var(--main-purple); --eg-tint:#ECE8FB; --eg-ink:#5233E0;
+  --ksa:var(--vivid-green); --ksa-tint:#DDF9EB; --ksa-ink:#17734B;
+  --grp-ink:var(--dark-purple);
+  --shadow:0 1px 2px rgba(52,41,94,.06),0 8px 24px rgba(52,41,94,.06);
+  --f-display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#130F26; --surface:#1D1735; --sunk:#262045; --line:#322A57; --line-strong:#43397A;
+  --fg:#F7F6F2; --muted:#BDB6DC; --faint:#7F78A3;
+  --brand:#8E73FF; --brand-ink:#B3A2FF; --brand-tint:#2E2560;
+  --hero:#2A2150; --hero-fg:#FFFFFF; --hero-muted:#C9C2EA;
+  --green-ink:#80EBBA; --green-tint:#173D2E;
+  --pink-ink:#FF8A8B; --pink-tint:#4A1E25;
+  --cancel-ink:#FFA9A2; --cancel-tint:#3F2427;
+  --eg-tint:#2E2560; --eg-ink:#B3A2FF; --ksa-tint:#173D2E; --ksa-ink:#80EBBA;
+  --grp-ink:#B3A2FF; --shadow:none; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#130F26; --surface:#1D1735; --sunk:#262045; --line:#322A57; --line-strong:#43397A;
+  --fg:#F7F6F2; --muted:#BDB6DC; --faint:#7F78A3;
+  --brand:#8E73FF; --brand-ink:#B3A2FF; --brand-tint:#2E2560;
+  --hero:#2A2150; --hero-fg:#FFFFFF; --hero-muted:#C9C2EA;
+  --green-ink:#80EBBA; --green-tint:#173D2E;
+  --pink-ink:#FF8A8B; --pink-tint:#4A1E25;
+  --cancel-ink:#FFA9A2; --cancel-tint:#3F2427;
+  --eg-tint:#2E2560; --eg-ink:#B3A2FF; --ksa-tint:#173D2E; --ksa-ink:#80EBBA;
+  --grp-ink:#B3A2FF; --shadow:none; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:16px 56px}
+.wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2{font-family:var(--f-display);margin:0;letter-spacing:-.02em;text-wrap:balance}
+h2{font-size:1.15rem}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.eyebrow{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600;color:var(--muted)}
+
+/* header panel */
+.hero{background:radial-gradient(120% 140% at 100% 100%,rgba(107,71,245,.55),rgba(107,71,245,0) 55%),var(--hero);color:var(--hero-fg);border-radius:22px;padding:22px 24px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:center;justify-content:space-between;position:relative;z-index:20}
+.hero .eyebrow{color:var(--vivid-green)}
+.hero h1{font-size:clamp(1.6rem,3.2vw,2.2rem);font-weight:800;line-height:1.05;margin-top:4px}
+.brand{display:flex;flex-direction:column;gap:8px;min-width:0;position:relative;z-index:1}
+.sync{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;color:var(--hero-muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
+.dot.live{background:var(--vivid-green);box-shadow:0 0 0 3px rgba(128,235,186,.25)}
+.dot.err{background:var(--vibrant-pink)}
+.dot.busy{background:var(--light-purple);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.dot.busy{animation:none}}
+.actions{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:2}
+.hbtn{display:inline-flex;align-items:center;gap:8px;border-radius:10px;padding:9px 14px;font-weight:600;font-size:.85rem;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff}
+.hbtn:hover{background:rgba(255,255,255,.16)}
+.hbtn.primary{background:var(--main-purple);border-color:var(--main-purple)}
+.hbtn.primary:hover{background:#7b5bf7}
+.hbtn svg{width:16px;height:16px;flex:none}
+.hbtn:disabled{opacity:.6;cursor:default}
+.menu{position:relative}
+[hidden]{display:none!important}
+.menu-list{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(20,14,50,.22);padding:6px;min-width:200px;z-index:30;display:flex;flex-direction:column}
+.menu-list button{border:0;background:none;text-align:left;padding:9px 10px;border-radius:8px;display:flex;flex-direction:column;gap:1px}
+.menu-list button:hover{background:var(--sunk)}
+.menu-list b{font-weight:600;font-size:.86rem}
+.menu-list small{color:var(--muted);font-size:.72rem}
+
+/* filter bar */
+.filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);padding-block:8px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.period{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0}
+.period h2{font-size:1.35rem}
+.ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.field{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 4px 4px 12px;font-size:.8rem;color:var(--muted)}
+.field select{border:0;background:var(--sunk);color:var(--fg);border-radius:8px;padding:6px 8px;font-size:.84rem;font-weight:500}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px}
+.seg button{border:0;background:transparent;padding:7px 14px;border-radius:8px;font-size:.84rem;color:var(--muted);font-weight:500;display:inline-flex;gap:7px;align-items:center}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--dark-purple);color:#fff;font-weight:600}
+.seg i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px;min-width:0;box-shadow:var(--shadow)}
+.card .lbl{display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:600;color:var(--muted)}
+.card .lbl i{width:10px;height:10px;border-radius:3px;flex:none}
+.big{font-family:var(--f-display);font-size:2.4rem;font-weight:800;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.card.in{background:var(--dark-purple);border-color:var(--dark-purple);color:#fff}
+.card.in .lbl{color:var(--hero-muted)}
+.card.in .split{color:var(--hero-muted)} .card.in .split b{color:#fff}
+.card.hot{background:var(--pink-tint);border-color:color-mix(in srgb,var(--vibrant-pink) 45%,var(--line))}
+.card.hot .big{color:var(--pink-ink)}
+.split{display:flex;justify-content:space-between;gap:8px;font-size:.76rem;color:var(--muted);flex-wrap:wrap}
+.split span{display:inline-flex;gap:6px;align-items:center}
+.split b{font-family:var(--f-mono);font-weight:600;color:var(--fg)}
+.chip{font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.05em;line-height:1.4}
+.chip.eg{background:var(--eg-tint);color:var(--eg-ink)} .chip.ksa{background:var(--ksa-tint);color:var(--ksa-ink)}
+.card.in .chip.eg{background:rgba(214,209,237,.18);color:#E6E1FF} .card.in .chip.ksa{background:rgba(128,235,186,.18);color:var(--vivid-green)}
+
+/* status mix bar */
+.mix{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
+.mixbar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--sunk);gap:2px}
+.mixbar i{display:block;height:100%;min-width:2px}
+.mixkey{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.78rem;color:var(--muted)}
+.mixkey span{display:inline-flex;align-items:center;gap:6px}
+.mixkey i{width:10px;height:10px;border-radius:3px}
+.mixkey b{color:var(--fg);font-family:var(--f-mono);font-weight:600}
+
+/* table */
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sec-head > div{display:flex;flex-direction:column;gap:4px}
+.tbl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto;box-shadow:var(--shadow)}
+table.wl{width:100%;border-collapse:separate;border-spacing:0;min-width:820px}
+.wl th,.wl td{padding:9px 8px;text-align:center;border-bottom:1px solid var(--line)}
+.wl thead th{font-size:.72rem;font-weight:600;color:var(--muted);background:var(--sunk);letter-spacing:.03em;white-space:nowrap}
+.wl thead tr.grp th{background:var(--surface);color:var(--grp-ink);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;padding:12px 8px 10px}
+.wl .edge{border-left:1px solid var(--line)}
+.wl th.who-h,.wl td:first-child{text-align:left;padding-left:16px;position:sticky;left:0;background:var(--surface);z-index:1;border-right:1px solid var(--line);width:250px}
+.wl thead tr.grp th.who-h{vertical-align:bottom;background:var(--sunk);color:var(--muted);text-transform:none;letter-spacing:.03em}
+.wl tbody tr:last-child td{border-bottom:0}
+.wl tbody tr:hover td{background:var(--sunk)}
+.who{display:flex;gap:10px;align-items:center;white-space:nowrap}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:.66rem;font-weight:700;flex:none}
+.av.eg{background:var(--eg-tint);color:var(--eg-ink)} .av.ksa{background:var(--ksa-tint);color:var(--ksa-ink)}
+.nm{display:flex;flex-direction:column;line-height:1.2}
+.nm b{font-weight:600;font-size:.87rem}
+.nm small{font-size:.64rem;font-weight:700;letter-spacing:.07em}
+.nm small.eg{color:var(--eg-ink)} .nm small.ksa{color:var(--ksa-ink)}
+.newtag{font-size:.58rem;font-weight:700;letter-spacing:.06em;padding:2px 6px;border-radius:5px;background:var(--vivid-green);color:var(--dark-purple);margin-inline-start:7px;vertical-align:1px}
+.cnt{display:inline-grid;place-items:center;min-width:34px;height:26px;padding:0 8px;border-radius:8px;font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:600;font-size:.86rem}
+.cnt.z{color:var(--faint);font-weight:400}
+.c-t{background:var(--sunk);color:var(--fg)}
+.c-p{background:var(--brand-tint);color:var(--brand-ink)}
+.c-b{background:var(--pink-tint);color:var(--pink-ink)}
+.c-c{background:var(--cancel-tint);color:var(--cancel-ink)}
+.c-d{background:var(--green-tint);color:var(--green-ink)}
+td.tot{font-family:var(--f-mono);font-weight:700}
+.wl tr.sum td{background:var(--sunk);font-weight:700;border-top:2px solid var(--line-strong);font-family:var(--f-mono)}
+.wl tr.sum td:first-child{font-family:var(--f-body);background:var(--sunk)}
+.wl tr.sum small{display:block;font-weight:400;font-size:.66rem;color:var(--faint)}
+.szs{display:inline-flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.sz{font-size:.68rem;font-weight:600;padding:2px 7px;border-radius:999px;white-space:nowrap}
+.sz-major{background:var(--pink-tint);color:var(--pink-ink)}
+.sz-medium{background:var(--brand-tint);color:var(--brand-ink)}
+.sz-minor{background:var(--green-tint);color:var(--green-ink)}
+.sz-none{color:var(--faint);font-size:.68rem}
+.empty{padding:32px 8px;text-align:center;color:var(--muted)}
+.note{font-size:.78rem;color:var(--faint);margin:0;max-width:80ch}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--dark-purple);color:#fff;padding:10px 16px;border-radius:10px;font-size:.84rem;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:50}
+@media (max-width:560px){ .hero{padding:18px} .big{font-size:2rem} .seg button{padding:6px 10px} }
+
+/* PDF / print */
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  :root{--bg:#fff;--surface:#fff;--shadow:none}
+  html,body{background:#fff}
+  body{padding:0;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .actions,.ctl,.toast,.menu-list{display:none!important}
+  .wrap{display:block;max-width:none}
+  .wrap>*{margin:0 0 10px}
+  .filters{position:static;backdrop-filter:none;background:none;padding:0}
+  .hero{border-radius:10px;padding:10px 16px}
+  .hero h1{font-size:1.5rem}
+  .cards{gap:8px}
+  .card{padding:10px 12px}
+  .big{font-size:1.5rem}
+  .card,.mix,.hero{break-inside:avoid}
+  .tbl-wrap{overflow:visible;border:none;border-radius:0;box-shadow:none}
+  table.wl{min-width:0;width:100%;font-size:10px;border-collapse:collapse}
+  .wl thead{display:table-header-group}
+  .wl tr{break-inside:avoid;page-break-inside:avoid}
+  .wl th,.wl td{padding:4px 6px}
+  .wl thead tr.grp th{padding:6px}
+  .wl th.who-h,.wl td:first-child{position:static;width:auto}
+  .av{width:22px;height:22px;font-size:9px}
+  .wl th,.wl td{padding:3px 6px}
+  .note{max-width:none;font-size:8.5px;line-height:1.35;margin:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="brand">
+      <span class="eyebrow">Digital Experience · Design team</span>
+      <h1>DXE Team Workload</h1>
+      <div class="sync"><span class="dot" id="syncDot"></span><span id="syncText">Loading…</span></div>
+    </div>
+    <div class="actions">
+      <button class="hbtn" type="button" id="refreshBtn" title="Load the latest numbers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>Refresh</button>
+      <div class="menu">
+        <button class="hbtn primary" type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Export</button>
+        <div class="menu-list" id="exportMenu" hidden>
+          <button type="button" id="expPdf"><b>PDF</b><small>Summary and table, as shown</small></button>
+          <button type="button" id="expXlsx"><b>Excel (.xlsx)</b><small>Summary and designer sheets</small></button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="filters">
+    <div class="period"><span class="eyebrow">Showing</span><h2 id="periodLabel">–</h2><span class="eyebrow" id="teamLabel"></span></div>
+    <div class="ctl">
+      <label class="field" for="mSel">Period <select id="mSel"><option>Loading…</option></select></label>
+      <div class="seg" role="group" aria-label="Team" id="teamSeg">
+        <button type="button" data-t="all" aria-pressed="true">Whole team</button>
+        <button type="button" data-t="eg" aria-pressed="false"><i style="background:var(--eg)"></i>Egypt</button>
+        <button type="button" data-t="ksa" aria-pressed="false"><i style="background:var(--ksa)"></i>KSA</button>
+      </div>
+    </div>
+  </div>
+
+  <section aria-label="Summary">
+    <div class="cards" id="cards"></div>
+  </section>
+  <section class="mix" aria-label="Status mix">
+    <div class="mixbar" id="mixBar"></div>
+    <div class="mixkey" id="mixKey"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div><span class="eyebrow">Main tasks per designer</span><h2>By designer</h2></div></div>
+    <div class="tbl-wrap">
+      <table class="wl">
+        <thead id="mHead"><tr><th class="who-h">Designer</th></tr></thead>
+        <tbody id="mBody"><tr><td class="empty" style="position:static">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+  <p class="note">Updated from ClickUp about 12:00, 16:00 and 20:00 Riyadh time, Sunday to Thursday. Counts main tasks (no subtasks). To Do, In Progress and Blocked count tasks that came in during the chosen period and are in that state now; Done and Cancelled count tasks closed in the period; "All time" counts every task. To Do covers to do, motion brief and storyboarding. In Progress covers in progress, hands on, team review, stakeholders review, animating, motion review and amends. Done covers done, signed off, complete and approved. Task size comes from the major, medium and minor tags.</p>
+</div>
+
+<script>
+(() => {
+"use strict";
+// data.json: {generatedAt, year, removed:[codes], newJoinerDays, people:{code:[name,team,joined]},
+//             tasks:[[status t|p|b|c|d, [codes], created "YYYY-MM", closed "YYYY-MM"|"", size, subtask 0|1]]}
+const TZ=3*3600e3, DAY=864e5;
+const MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const ST=[["t","To Do"],["p","In Progress"],["b","Blocked"],["c","Cancelled"],["d","Done"]];
+const ST_COLOR={t:"var(--light-gray)",p:"var(--main-purple)",b:"var(--vibrant-pink)",c:"var(--light-pink)",d:"var(--vivid-green)"};
+const SIZES=["major","medium","minor"];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rd=ms=>new Date(ms+TZ);
+const fmtStamp=ms=>rd(ms).toLocaleString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",timeZone:"UTC"});
+const chip=k=>`<span class="chip ${k}">${k==="eg"?"EG":"KSA"}</span>`;
+const initials=n=>String(n).trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase();
+const fmt=n=>Number(n||0).toLocaleString("en");
+const TEAM_NAME={all:"Whole team",eg:"Egypt team",ksa:"KSA team"};
+let D=null, team="all", monthSel=null;
+try{ const v=localStorage.getItem("dxe-cto-team"); if(v&&TEAM_NAME[v]) team=v; }catch{}
+
+function toast(msg){ document.querySelectorAll(".toast").forEach(n=>n.remove()); const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+
+function prune(j){
+  const removed=new Set(j.removed||[]);
+  j.tasks=(j.tasks||[]).filter(r=>!r[5]) // main tasks only, same as ClickUp's task count
+    .map(r=>{ const x=r.slice(); x[1]=(r[1]||[]).filter(c=>!removed.has(c)); return x; }).filter(r=>r[1].length);
+  for(const c of removed) if(j.people) delete j.people[c];
+  return j;
+}
+function monthOptions(){
+  const cur=rd(D.generatedAt).toISOString().slice(0,7), yr=String(D.year||cur.slice(0,4));
+  const ks=new Set([cur]);
+  for(const [,,cr,cl] of D.tasks){ if(cr&&cr.startsWith(yr)) ks.add(cr); if(cl&&cl.startsWith(yr)) ks.add(cl); }
+  const list=[...ks].filter(k=>k<=cur).sort().reverse();
+  if(monthSel==null) monthSel=cur;
+  $("mSel").innerHTML=list.map(k=>`<option value="${k}">${MON[+k.slice(5,7)-1]} ${k.slice(0,4)}${k===cur?" (this month)":""}</option>`).join("")+`<option value="year">All of ${yr}</option><option value="all">All time</option>`;
+  $("mSel").value=monthSel;
+}
+
+// one place that turns the data + filters into numbers; the page and both exports use it
+function model(){
+  const P=D.people||{}, gen=D.generatedAt, yr=String(D.year);
+  const teamOf=c=>(P[c]&&P[c][1])||"eg";
+  const mine=c=>team==="all"||teamOf(c)===team;
+  const isNew=c=>{ const j=P[c]&&P[c][2]; if(!j) return false; if(j==="new") return true; const t=Date.parse(j+"T00:00:00Z"); return !isNaN(t)&&gen>=t&&gen-t<=(D.newJoinerDays||90)*DAY; };
+  const ever=monthSel==="all", all=monthSel==="year";
+  const label=ever?"All time":all?`All of ${yr}`:`${MON[+monthSel.slice(5,7)-1]} ${monthSel.slice(0,4)}`;
+  const inSel=([st,,cr,cl])=>{ if(ever) return true; if(st==="d"||st==="c") return all?(cl&&cl.startsWith(yr)):cl===monthSel; return all?true:cr===monthSel; };
+  const came=([,,cr])=>ever?true:all?(cr&&cr.startsWith(yr)):cr===monthSel;
+  const zero=()=>({all:0,eg:0,ksa:0});
+  const S={in:zero(),t:zero(),p:zero(),b:zero(),c:zero(),d:zero()};
+  const add=(o,codes)=>{ const ts=new Set(codes.map(teamOf)); o.all++; ts.forEach(t=>o[t]++); };
+  const rows={}, row=c=>rows[c] ||= {code:c,name:(P[c]&&P[c][0])||c,team:teamOf(c),isNew:isNew(c),t:0,p:0,b:0,c:0,d:0,sz:{major:0,medium:0,minor:0,"":0}};
+  const totSz={major:0,medium:0,minor:0,"":0};
+  for(const r of D.tasks){
+    const [st,codes,,,size]=r;
+    if(came(r)) add(S.in,codes);
+    if(!inSel(r)) continue;
+    add(S[st],codes);
+    if(codes.some(mine)) totSz[size||""]++;
+    for(const c of codes){ if(!mine(c)) continue; const x=row(c); x[st]++; x.sz[size||""]++; }
+  }
+  const sv=o=>team==="all"?o.all:o[team];
+  const list=Object.values(rows).map(x=>(x.total=x.t+x.p+x.b+x.c+x.d,x)).filter(x=>x.total)
+    .sort((a,b)=>(b.p+b.b+b.t)-(a.p+a.b+a.t)||b.d-a.d||a.name.localeCompare(b.name));
+  const grand=ST.reduce((n,[k])=>n+sv(S[k]),0);
+  return {label,teamLabel:TEAM_NAME[team],S,sv,list,totSz,gen,grand};
+}
+
+function render(){
+  monthOptions();
+  const M=model(), {S,sv}=M;
+  $("syncDot").className="dot "+(Date.now()-M.gen<14*3600e3?"live":"err");
+  $("syncText").textContent=`Updated ${fmtStamp(M.gen)} · Riyadh time`;
+  $("periodLabel").textContent=M.label;
+  $("teamLabel").textContent=M.teamLabel;
+  const split=o=>team==="all"?`<div class="split"><span>${chip("eg")} <b>${fmt(o.eg)}</b></span><span><b>${fmt(o.ksa)}</b> ${chip("ksa")}</span></div>`:"";
+  const card=(key,label,cls="")=>`<div class="card ${cls}"><span class="lbl">${key==="in"?"":`<i style="background:${ST_COLOR[key]}"></i>`}${label}</span><span class="big">${fmt(sv(S[key]))}</span>${split(S[key])}</div>`;
+  $("cards").innerHTML=card("in","Came in","in")+ST.map(([k,l])=>card(k,l,k==="b"&&sv(S.b)>0?"hot":"")).join("");
+  const tot=M.grand||1;
+  $("mixBar").innerHTML=ST.map(([k,l])=>{ const v=sv(S[k]); return v?`<i style="width:${v/tot*100}%;background:${ST_COLOR[k]}" title="${l}: ${v}"></i>`:""; }).join("");
+  $("mixKey").innerHTML=ST.map(([k,l])=>`<span><i style="background:${ST_COLOR[k]}"></i>${l} <b>${fmt(sv(S[k]))}</b> · ${Math.round(sv(S[k])/tot*100)}%</span>`).join("");
+  // table
+  $("mHead").innerHTML=`<tr class="grp"><th class="who-h" rowspan="2">Designer</th><th colspan="6">${esc(M.label)}</th><th class="edge">By size</th></tr><tr class="cols">${ST.map(([,l])=>`<th>${l}</th>`).join("")}<th>Total</th><th class="edge">Major · Medium · Minor</th></tr>`;
+  const szCell=z=>{ const parts=SIZES.filter(s=>z[s]).map(s=>`<span class="sz sz-${s}">${z[s]} ${s}</span>`); if(z[""]) parts.push(`<span class="sz-none" title="Tasks without a size tag">+${z[""]} untagged</span>`); return parts.length?`<span class="szs">${parts.join("")}</span>`:`<span class="sz-none">–</span>`; };
+  const num=(n,cls)=>`<span class="cnt ${n?cls:"z"}">${n}</span>`;
+  $("mBody").innerHTML=M.list.length?M.list.map(x=>`<tr><td><div class="who"><span class="av ${x.team}" aria-hidden="true">${esc(initials(x.name))}</span><span class="nm"><b>${esc(x.name)}${x.isNew?`<span class="newtag" title="New joiner">NEW</span>`:""}</b><small class="${x.team}">${x.team==="eg"?"EG":"KSA"}</small></span></div></td>${ST.map(([k])=>`<td>${num(x[k],"c-"+k)}</td>`).join("")}<td class="tot">${x.total}</td><td class="edge">${szCell(x.sz)}</td></tr>`).join("")
+    +`<tr class="sum"><td>Total tasks<small>each task counted once</small></td>${ST.map(([k])=>`<td>${fmt(sv(S[k]))}</td>`).join("")}<td>${fmt(M.grand)}</td><td class="edge">${szCell(M.totSz)}</td></tr>`
+    :`<tr><td colspan="8" class="empty" style="position:static">No tasks for this selection.</td></tr>`;
+}
+
+// ---------- data loading + refresh
+function load(manual){
+  const btn=$("refreshBtn");
+  if(manual){ btn.disabled=true; $("syncDot").className="dot busy"; }
+  const src=window.__DASH_DATA__?Promise.resolve(JSON.parse(JSON.stringify(window.__DASH_DATA__))):fetch("data.json?t="+Date.now(),{cache:"no-store"}).then(r=>{ if(!r.ok) throw 0; return r.json(); });
+  return src.then(j=>{
+    if(!j.tasks){ $("syncText").textContent="Waiting for the next update from ClickUp"; return; }
+    const before=D&&D.generatedAt;
+    D=prune(j); render();
+    if(manual) toast(before&&before===D.generatedAt?`Already up to date · updated ${fmtStamp(D.generatedAt)}`:"Loaded the latest numbers");
+  }).catch(()=>{ $("syncDot").className="dot err"; $("syncText").textContent="Could not load the data. Try Refresh again."; })
+    .finally(()=>{ btn.disabled=false; });
+}
+$("refreshBtn").addEventListener("click",()=>load(true));
+
+// ---------- export menu
+const menu=$("exportMenu"), exBtn=$("exportBtn");
+const closeMenu=()=>{ menu.hidden=true; exBtn.setAttribute("aria-expanded","false"); };
+exBtn.addEventListener("click",e=>{ e.stopPropagation(); menu.hidden=!menu.hidden; exBtn.setAttribute("aria-expanded",String(!menu.hidden)); });
+document.addEventListener("click",e=>{ if(!menu.contains(e.target)) closeMenu(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeMenu(); });
+const fileBase=()=>{ const M=model(); return `DXE-Workload_${M.label.replace(/\s+/g,"-")}_${M.teamLabel.replace(/\s+/g,"-")}`; };
+$("expPdf").addEventListener("click",()=>{ closeMenu(); if(!D) return; const t=document.title; document.title=fileBase(); setTimeout(()=>{ window.print(); document.title=t; },50); });
+$("expXlsx").addEventListener("click",()=>{ closeMenu(); if(!D) return; try{ downloadXlsx(); toast("Excel file downloaded"); }catch(err){ console.error(err); toast("Could not build the Excel file"); } });
+
+// ---------- small .xlsx writer (no external library)
+function xlsxRows(){
+  const M=model(), {S,sv}=M;
+  const summary=[["DXE Team Workload"],["Period",M.label],["Team",M.teamLabel],["Updated (Riyadh time)",fmtStamp(M.gen)],[],
+    ["Metric","Selected team","Egypt","KSA"],
+    ["Came in",sv(S.in),S.in.eg,S.in.ksa],
+    ...ST.map(([k,l])=>[l,sv(S[k]),S[k].eg,S[k].ksa]),
+    ["Total",M.grand,ST.reduce((n,[k])=>n+S[k].eg,0),ST.reduce((n,[k])=>n+S[k].ksa,0)]];
+  const designers=[["Designer","Team","New joiner",...ST.map(([,l])=>l),"Total","Major","Medium","Minor","Untagged"],
+    ...M.list.map(x=>[x.name,x.team==="eg"?"Egypt":"KSA",x.isNew?"Yes":"",...ST.map(([k])=>x[k]),x.total,x.sz.major,x.sz.medium,x.sz.minor,x.sz[""]]),
+    ["Total tasks (each counted once)","","",...ST.map(([k])=>sv(S[k])),M.grand,M.totSz.major,M.totSz.medium,M.totSz.minor,M.totSz[""]]];
+  return [{name:"Summary",rows:summary,widths:[26,16,12,12],bold:[0,5]},{name:"By designer",rows:designers,widths:[30,10,11,10,12,10,11,10,9,9,9,9,10],bold:[0,designers.length-1]}];
+}
+function downloadXlsx(){
+  const blob=buildXlsx(xlsxRows());
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fileBase()+".xlsx"; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1000);
+}
+function buildXlsx(sheets){
+  const x=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const col=i=>{ let s=""; i++; while(i){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; };
+  const sheetXml=sh=>{
+    const rows=sh.rows.map((r,ri)=>`<row r="${ri+1}">`+r.map((v,ci)=>{ const ref=col(ci)+(ri+1), st=sh.bold.includes(ri)?' s="1"':"";
+      if(v===""||v==null) return ""; return typeof v==="number"?`<c r="${ref}"${st}><v>${v}</v></c>`:`<c r="${ref}" t="inlineStr"${st}><is><t xml:space="preserve">${x(v)}</t></is></c>`; }).join("")+`</row>`).join("");
+    const cols=`<cols>${sh.widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`;
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${rows}</sheetData></worksheet>`;
+  };
+  const files=[
+    ["[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`],
+    ["_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+    ["xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${x(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets></workbook>`],
+    ["xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")}<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+    ["xl/styles.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
+    ...sheets.map((s,i)=>[`xl/worksheets/sheet${i+1}.xml`,sheetXml(s)])
+  ];
+  return zipStore(files);
+}
+function zipStore(files){
+  const enc=new TextEncoder(), crcT=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; crcT[n]=c>>>0; }
+  const crc=b=>{ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=crcT[(c^b[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
+  const parts=[], central=[]; let off=0;
+  const u16=v=>[v&255,(v>>>8)&255], u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+  for(const [name,text] of files){
+    const nb=enc.encode(name), data=enc.encode(text), c=crc(data);
+    const local=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(data.length),...u32(data.length),...u16(nb.length),...u16(0)]);
+    parts.push(local,nb,data);
+    central.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(data.length),...u32(data.length),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nb);
+    off+=local.length+nb.length+data.length;
+  }
+  const cdSize=central.reduce((n,p)=>n+p.length,0);
+  const end=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(off),...u16(0)]);
+  return new Blob([...parts,...central,end],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+
+// ---------- filters
+$("mSel").addEventListener("change",e=>{ monthSel=e.target.value; render(); });
+const seg=$("teamSeg");
+seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x.dataset.t===team)));
+seg.addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; team=b.dataset.t; seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); try{localStorage.setItem("dxe-cto-team",team);}catch{} if(D) render(); });
+load(false);
+})();
+</script>
+</body>
+</html>
