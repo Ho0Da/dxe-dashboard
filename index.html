@@ -171,24 +171,36 @@ td.tot{font-family:var(--f-mono);font-weight:700}
 .sz-none{color:var(--faint);font-size:.68rem}
 .empty{padding:32px 8px;text-align:center;color:var(--muted)}
 .note{font-size:.78rem;color:var(--faint);margin:0;max-width:80ch}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--dark-purple);color:#fff;padding:10px 16px;border-radius:10px;font-size:.84rem;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:50}
+.toast a{color:var(--green,#80EBBA);font-weight:700;text-decoration:underline}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--dark-purple);color:#fff;padding:10px 16px;border-radius:10px;font-size:.84rem;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:50;max-width:min(92vw,460px);line-height:1.5;text-align:center}
 @media (max-width:560px){ .hero{padding:18px} .big{font-size:2rem} .seg button{padding:6px 10px} }
 
 /* PDF / print */
 @media print{
-  @page{size:A4 landscape;margin:10mm}
+  @page{size:A4 landscape;margin:8mm}
   :root{--bg:#fff;--surface:#fff;--shadow:none}
-  body{padding:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .actions,.ctl,.toast{display:none!important}
+  html,body{background:#fff}
+  body{padding:0;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .actions,.ctl,.toast,.menu-list{display:none!important}
+  .wrap{display:block;max-width:none}
+  .wrap>*{margin:0 0 10px}
   .filters{position:static;backdrop-filter:none;background:none;padding:0}
-  .hero{border-radius:12px;padding:14px 18px}
-  .wrap{gap:14px}
-  .tbl-wrap{overflow:visible}
-  table.wl{min-width:0;font-size:10.5px}
+  .hero{border-radius:10px;padding:10px 16px}
+  .hero h1{font-size:1.5rem}
+  .cards{gap:8px}
+  .card{padding:10px 12px}
+  .big{font-size:1.5rem}
+  .card,.mix,.hero{break-inside:avoid}
+  .tbl-wrap{overflow:visible;border:none;border-radius:0;box-shadow:none}
+  table.wl{min-width:0;width:100%;font-size:10px;border-collapse:collapse}
+  .wl thead{display:table-header-group}
+  .wl tr{break-inside:avoid;page-break-inside:avoid}
+  .wl th,.wl td{padding:4px 6px}
+  .wl thead tr.grp th{padding:6px}
   .wl th.who-h,.wl td:first-child{position:static;width:auto}
-  .card,.mix{break-inside:avoid}
-  .wl tr{break-inside:avoid}
-  .big{font-size:1.8rem}
+  .av{width:22px;height:22px;font-size:9px}
+  .wl th,.wl td{padding:3px 6px}
+  .note{max-width:none;font-size:8.5px;line-height:1.35;margin:0}
 }
 </style>
 </head>
@@ -267,6 +279,7 @@ const TEAM_NAME={all:"Whole team",eg:"Egypt team",ksa:"KSA team"};
 let D=null, team="all", monthSel=null;
 try{ const v=localStorage.getItem("dxe-cto-team"); if(v&&TEAM_NAME[v]) team=v; }catch{}
 
+function toastHtml(html,ms){ document.querySelectorAll(".toast").forEach(n=>n.remove()); const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.innerHTML=html; document.body.appendChild(t); setTimeout(()=>t.remove(),ms||2600); }
 function toast(msg){ document.querySelectorAll(".toast").forEach(n=>n.remove()); const t=document.createElement("div"); t.className="toast"; t.setAttribute("role","status"); t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
 
 function prune(j){
@@ -319,7 +332,7 @@ function model(){
 function render(){
   monthOptions();
   const M=model(), {S,sv}=M;
-  $("syncDot").className="dot "+(Date.now()-M.gen<14*3600e3?"live":"err");
+  $("syncDot").className="dot "+(isStale(M.gen)?"err":"live");
   $("syncText").textContent=`Updated ${fmtStamp(M.gen)} · Riyadh time`;
   $("periodLabel").textContent=M.label;
   $("teamLabel").textContent=M.teamLabel;
@@ -347,11 +360,41 @@ function load(manual){
     if(!j.tasks){ $("syncText").textContent="Waiting for the next update from ClickUp"; return; }
     const before=D&&D.generatedAt;
     D=prune(j); render();
-    if(manual) toast(before&&before===D.generatedAt?`Already up to date · updated ${fmtStamp(D.generatedAt)}`:"Loaded the latest numbers");
+    const changed=!(before&&before===D.generatedAt);
+    if(changed&&before){ stopWatch(); toast("New numbers loaded from ClickUp"); }
+    else if(manual){ toastHtml(`Already up to date (synced ${esc(fmtStamp(D.generatedAt))}). Next ClickUp sync about <b>${esc(nextSync())}</b>.<br><a href="${RUN_URL}" target="_blank" rel="noopener">Sync from ClickUp now ↗</a>`,9000); startWatch(); }
   }).catch(()=>{ $("syncDot").className="dot err"; $("syncText").textContent="Could not load the data. Try Refresh again."; })
     .finally(()=>{ btn.disabled=false; });
 }
 $("refreshBtn").addEventListener("click",()=>load(true));
+// Refresh reads the latest saved numbers. ClickUp itself is pulled by the GitHub workflow
+// (about 12:00, 16:00, 20:00 Riyadh, Sun–Thu, or on demand from the Actions page).
+const RUN_URL="https://github.com/Ho0Da/dxe-dashboard/actions/workflows/update.yml";
+function nextSync(){
+  const slots=[12,16,20], now=new Date(), r=new Date(now.getTime()+(now.getTimezoneOffset()+180)*60000);
+  for(let d=0; d<8; d++){
+    const day=new Date(r); day.setDate(r.getDate()+d);
+    if(day.getDay()>4) continue; // Fri, Sat off
+    for(const h of slots){ const t=new Date(day); t.setHours(h,15,0,0); if(t>r) return t.toLocaleString("en-GB",{weekday:"short",hour:"2-digit",minute:"2-digit"})+" Riyadh"; }
+  }
+  return "soon";
+}
+// Stale only if a scheduled sync (Sun–Thu 12/16/20 Riyadh) passed more than 2h ago without new data
+function isStale(gen){
+  const off=180*60000, now=Date.now();
+  for(let d=0; d<8; d++){
+    const base=new Date(now+off); base.setUTCDate(base.getUTCDate()-d);
+    if(base.getUTCDay()>4) continue;
+    for(const h of [20,16,12]){
+      const slot=Date.UTC(base.getUTCFullYear(),base.getUTCMonth(),base.getUTCDate(),h,0)-off;
+      if(slot+2*3600e3<=now) return gen<slot;
+    }
+  }
+  return false;
+}
+let watchT=null, watchUntil=0;
+function startWatch(){ if(window.__DASH_DATA__) return; watchUntil=Date.now()+15*60000; if(!watchT) watchT=setInterval(()=>{ if(Date.now()>watchUntil) return stopWatch(); load(false); },30000); }
+function stopWatch(){ clearInterval(watchT); watchT=null; }
 
 // ---------- export menu
 const menu=$("exportMenu"), exBtn=$("exportBtn");
